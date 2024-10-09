@@ -47,7 +47,7 @@
  * @param[out] dest  the buffer to write the URL-encoded string
  * @param[in]  str   the input string to be escaped
  */
-static void url_encode(char *dest, const char *str)
+void url_encode(char *dest, const char *str)
 {
 	while (*str != '\0') {
 		if (isalnum(*str) || *str == '-' || *str == '_' ||

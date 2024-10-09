@@ -8,6 +8,31 @@
 #include "config.h"
 #include "log.h"
 #include "tunnel.h"
+#include "http.h" // for url_encode
+
+static void print_url(const struct vpn_config *cfg) {
+	char *encoded_realm = NULL;
+	char realm[] = "&realm=";
+	char *empty_string = "\0";
+
+	// Desired string is https://company.com:port/remote/saml/start?redirect=1(&realm=<str>)
+	// with the realm being optional
+	static const char *uri_pattern = "https://%s:%d/remote/saml/start?redirect=1%s%s";
+
+	if (cfg->realm[0] != '\0') {
+		encoded_realm = alloca(strlen(cfg->realm) * 3 + 1); // url_encode required three times the size
+		url_encode(encoded_realm, cfg->realm);
+	} else {
+		encoded_realm = empty_string;
+		realm[0] = 0; // Make realm appear empty when printing as string
+	}
+
+	int required_size = 1 + snprintf(NULL, 0, uri_pattern, cfg->gateway_host, cfg->gateway_port, realm, encoded_realm);
+	char *url = alloca(required_size);
+	snprintf(url, required_size, uri_pattern, cfg->gateway_host, cfg->gateway_port, realm, encoded_realm);
+
+	log_info("Authenticate at '%s'\n", url);
+}
 
 // Convenience function to send a response with a user readable status message and the
 // request URL shown for debug purposes.
