@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <netinet/tcp.h>
 #include <sys/select.h>
+#include <arpa/inet.h>
 
 #include "config.h"
 #include "log.h"
@@ -152,6 +153,20 @@ int wait_for_http_request(struct vpn_config *config) {
 	int opt = 1;
 	int addrlen = sizeof(address);
 	long saml_port = config->saml_port;
+	char addrstring[INET_ADDRSTRLEN];
+
+	address.sin_family = AF_INET;
+	if (config->saml_hostaddr == NULL) {
+		// If hostaddr is not set, default to the loopback interface to avoid the port being
+		// publicly accessible to other machines on the network.
+		address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	} else {
+		if (inet_pton(AF_INET, config->saml_hostaddr, &address.sin_addr.s_addr) != 1) {
+			log_error("SAML host address '%s' is invalid.\n", config->saml_hostaddr);
+			return -1;
+		}
+	}
+	address.sin_port = htons(saml_port);
 
 	// Creating socket file descriptor
 	if ((server_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)) == 0) {
@@ -166,14 +181,12 @@ int wait_for_http_request(struct vpn_config *config) {
 		return -1;
 	}
 
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	address.sin_port = htons(saml_port);
+	inet_ntop(AF_INET, &address.sin_addr.s_addr, addrstring, sizeof(addrstring)); // Ignore error
 
 	// Forcefully attaching socket to the port
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
 		close(server_fd);
-		log_error("Failed to bind socket to port %d\n", saml_port);
+		log_error("Failed to bind socket to %s:%d\n", addrstring, saml_port);
 		return -1;
 	}
 
@@ -187,7 +200,7 @@ int wait_for_http_request(struct vpn_config *config) {
 	fd_set readfds;
 	struct timeval tv;
 
-	log_info("Listening for SAML login on port %d\n", saml_port);
+	log_info("Listening for SAML login on %s:%d\n", addrstring, saml_port);
 	print_url(config);
 
 	while(max_tries > 0) {

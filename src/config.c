@@ -46,6 +46,7 @@ const struct vpn_config invalid_cfg = {
 	.password_set = 0,
 	.cookie = NULL,
 	.saml_port = 0,
+	.saml_hostaddr = NULL,
 	.saml_session_id = {'\0'},
 	.otp = {'\0'},
 	.otp_prompt = NULL,
@@ -427,6 +428,13 @@ int load_config(struct vpn_config *cfg, const char *filename)
 				goto err_free;
 			}
 			cfg->saml_port = (uint16_t)port;
+		} else if (strcmp(key, "saml-hostaddr") == 0) {
+			if (strlen(val) <= 1) {
+				log_error("The value of config option saml-hostaddr is too short\n");
+				goto err_free;
+			}
+			free(cfg->saml_hostaddr);
+			cfg->saml_hostaddr = strdup(val);
 		} else if (strcmp(key, "user-key") == 0) {
 			free(cfg->user_key);
 			cfg->user_key = strdup(val);
@@ -520,6 +528,7 @@ void destroy_vpn_config(struct vpn_config *cfg)
 		free(cfg->cert_whitelist);
 		cfg->cert_whitelist = tmp;
 	}
+	free(cfg->saml_hostaddr);
 }
 
 void merge_config(struct vpn_config *dst, struct vpn_config *src)
@@ -544,8 +553,11 @@ void merge_config(struct vpn_config *dst, struct vpn_config *src)
 		free(dst->cookie);
 		dst->cookie = src->cookie;
 	}
-	if(src->saml_port != 0) {
+	if (src->saml_port != 0) {
 		dst->saml_port = src->saml_port;
+	}
+	if (src->saml_hostaddr) {
+		dst->saml_hostaddr = strdup(src->saml_hostaddr);
 	}
 	if (src->pinentry) {
 		free(dst->pinentry);

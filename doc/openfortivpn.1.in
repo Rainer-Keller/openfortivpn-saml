@@ -11,6 +11,7 @@ openfortivpn \- Client for PPP+TLS VPN tunnel services
 [\fB\-\-cookie=\fI<cookie>\fR]
 [\fB\-\-cookie\-on\-stdin\fR]
 [\fB\-\-saml\-login[=\fI<port>\fR]]
+[\fB\-\-saml\-hostaddr=\fI<address>\fR]
 [\fB\-\-pinentry=\fI<name>\fR]
 [\fB\-\-otp=\fI<otp>\fR]
 [\fB\-\-otp\-prompt=\fI<prompt>\fR]
@@ -89,6 +90,13 @@ To login using SAML you just have to open
 At the end of the login process, the page will be redirected to
 `http://127.0.0.1:8020/?id=<session-id>'. The actual URL to use for the login,
 including the optional ream, is printed to the terminal when the web server it started.
+.TP
+\fB\-\-saml\-hostaddr=\fI<address>\fR
+This option specifies the interface the SAML response is listened on.
+By default, this is restricted to localhost to avoid the port being
+exposed to other machines on the network.
+In rare cases this can be used to recieve the SAML response from foreign
+machines. Use your actual network address, or 0.0.0.0 for any interface.
 .TP
 \fB\-\-pinentry=\fI<name>\fR
 The pinentry program to use. Allows supplying the password in a secure manner.

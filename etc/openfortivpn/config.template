@@ -6,3 +6,11 @@ username = vpnuser
 password = VPNpassw0rd
 
 # saml-login = 8020
+
+## This option specifies the interface the SAML response is listened on.
+## By default, this is restricted to localhost to avoid the port being
+## exposed to other machines on the network.
+## In rare cases this can be used to recieve the SAML response from foreign
+## machines. Use your actual network address, or 0.0.0.0 for any interface.
+#
+# saml-hostaddr = 127.0.0.1

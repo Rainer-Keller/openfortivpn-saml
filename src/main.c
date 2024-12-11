@@ -228,6 +228,7 @@ int main(int argc, char *argv[])
 		.password_set = 0,
 		.cookie = NULL,
 		.saml_port = 0,
+		.saml_hostaddr = NULL,
 		.saml_session_id = {'\0'},
 		.otp = {'\0'},
 		.otp_prompt = NULL,
@@ -291,6 +292,7 @@ int main(int argc, char *argv[])
 		{"cookie",               required_argument, NULL, 0},
 		{"cookie-on-stdin",      no_argument, NULL, 0},
 		{"saml-login",           optional_argument, NULL, 0},
+		{"saml-hostaddr",        required_argument, NULL, 0},
 		{"otp",                  required_argument, NULL, 'o'},
 		{"otp-prompt",           required_argument, NULL, 0},
 		{"otp-delay",            required_argument, NULL, 0},
@@ -620,6 +622,15 @@ int main(int argc, char *argv[])
 					break;
 				}
 				cli_cfg.saml_port = port;
+				break;
+			}
+			if (strcmp(long_options[option_index].name, "saml-hostaddr") == 0) {
+				if (strlen(optarg) <= 1) {
+					log_error("The value of config option saml-hostaddr is too short\n");
+					break;
+				}
+				free(cli_cfg.saml_hostaddr);
+				cli_cfg.saml_hostaddr = strdup(optarg);
 				break;
 			}
 			goto user_error;
